@@ -49,6 +49,10 @@ public class Paddle : NetworkBehaviour
     }
     void ApplySidePosition()
     {
+        if (OwnerClientId == 1)
+        {
+            side = PaddleSide.Right;
+        }
         float x = side == PaddleSide.Left ? LeftX : RightX;
         Vector3 paddlePos = transform.position;
         paddlePos.x = x;
@@ -79,10 +83,13 @@ public class Paddle : NetworkBehaviour
 
     void OnCollisionEnter(Collision other)
     {
+        Debug.Log($"Server detected collision with {name}");
         if (!IsServer)
         {
             return;
         }
+
+       
         // Get world-space bounds
         var paddleBounds = GetComponent<BoxCollider>().bounds;
 
@@ -110,6 +117,7 @@ public class Paddle : NetworkBehaviour
         Vector3 newVelocity = new Vector3(newSign * Mathf.Cos(newAngle), 0f, Mathf.Sin(newAngle)) * newSpeed;
         other.rigidbody.linearVelocity = newVelocity;
     }
+
     [Rpc(SendTo.Server)]
     private void UpdateInputRPC(float direction)
     {

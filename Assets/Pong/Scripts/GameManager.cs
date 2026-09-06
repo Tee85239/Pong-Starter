@@ -22,12 +22,22 @@ public class GameManager : NetworkBehaviour
 
     const int ScoreToWin = 11;
 
-    
-    void Start()
+    public override void OnNetworkSpawn()
     {
-        UpdateScore();
+        base.OnNetworkSpawn();
+        if (!IsServer)
+        {
+            return;
+        }
         StartGame();
+        UpdateScore();
     }
+
+    //void Start()
+   // {
+   //     UpdateScore();
+   //     StartGame();
+   // }
 
     public void StartGame()
     {
@@ -38,6 +48,10 @@ public class GameManager : NetworkBehaviour
     public void OnGoalScored(PaddleSide scoringSide)
     {
         // If the ball entered a goal area, increment the score, check for win, and reset the ball
+        if (!IsServer)
+        {
+            return;
+        }
 
         if (scoringSide == PaddleSide.Left)
         {
@@ -81,4 +95,7 @@ public class GameManager : NetworkBehaviour
         ballRigidbody.linearVelocity = newVelocity;
         ballRigidbody.angularVelocity = Vector3.zero;
     }
+
+   
+
 }

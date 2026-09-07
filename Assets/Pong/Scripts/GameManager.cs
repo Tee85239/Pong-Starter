@@ -17,30 +17,41 @@ public class GameManager : NetworkBehaviour
     [SerializeField] TextMeshProUGUI leftPlayerScoreText;
     [SerializeField] TextMeshProUGUI rightPlayerScoreText;
 
-    int _leftPlayerScore;
-    int _rightPlayerScore;
+    NetworkVariable<int> _leftPlayerScore = new NetworkVariable<int>(0);
+    NetworkVariable<int> _rightPlayerScore = new NetworkVariable<int>(0);
 
     const int ScoreToWin = 11;
 
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+       
+       
+        _leftPlayerScore.OnValueChanged += ScoreChanged;
+        _rightPlayerScore.OnValueChanged += ScoreChanged;
+
+
+        UpdateScore();
         if (!IsServer)
         {
             return;
         }
-        StartGame();
+        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+    }
+    private void ScoreChanged(int scorePrev, int scoreCurr)
+    {
         UpdateScore();
     }
-
-    //void Start()
-   // {
-   //     UpdateScore();
-   //     StartGame();
-   // }
+    private void OnClientConnected(ulong clientId)
+    {
+        StartGame();
+    }
+    
 
     public void StartGame()
     {
+        if (NetworkManager.Singleton.ConnectedClientsIds.Count < 2)
+            return;
         float direction = Random.value < 0.5f ? -1f : 1f;
         ResetBall(direction);
     }
@@ -55,32 +66,32 @@ public class GameManager : NetworkBehaviour
 
         if (scoringSide == PaddleSide.Left)
         {
-            _leftPlayerScore++;
-            Debug.Log($"Left player scored: {_leftPlayerScore}");
+            _leftPlayerScore.Value++;
+            Debug.Log($"Left player scored: {_leftPlayerScore.Value}");
 
-            if (_leftPlayerScore == ScoreToWin)
+            if (_leftPlayerScore.Value == ScoreToWin)
                 Debug.Log("Left player wins!");
             else
                 ResetBall(1f);
         }
         else if (scoringSide == PaddleSide.Right)
         {
-            _rightPlayerScore++;
-            Debug.Log($"Right player scored: {_rightPlayerScore}");
+            _rightPlayerScore.Value++;
+            Debug.Log($"Right player scored: {_rightPlayerScore.Value}");
 
-            if (_rightPlayerScore == ScoreToWin)
+            if (_rightPlayerScore.Value == ScoreToWin)
                 Debug.Log("Right player wins!");
             else
                 ResetBall(-1f);
         }
 
-        UpdateScore();
+        //UpdateScore();
     }
 
     void UpdateScore()
     {
-        rightPlayerScoreText.text = _rightPlayerScore.ToString();
-        leftPlayerScoreText.text = _leftPlayerScore.ToString();
+        rightPlayerScoreText.text = _rightPlayerScore.Value.ToString();
+        leftPlayerScoreText.text = _leftPlayerScore.Value.ToString();
     }
 
     void ResetBall(float directionSign)

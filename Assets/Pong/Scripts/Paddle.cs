@@ -75,15 +75,11 @@ public class Paddle : NetworkBehaviour
         else
             UpdateInputRPC(direction);
 
-        //Vector3 newPosition = transform.position + new Vector3(0f, 0f, direction) * speed * Time.deltaTime;
-        // newPosition.z = Mathf.Clamp(newPosition.z, minTravelZ, maxTravelZ);
-
-        //transform.position = newPosition;
+       
     }
 
     void OnCollisionEnter(Collision other)
     {
-        Debug.Log($"Server detected collision with {name}");
         if (!IsServer)
         {
             return;
